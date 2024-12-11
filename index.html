@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat App</title>
+</head>
+<body>
+  <h1>Connected Users:</h1>
+  <ul id="users-list"></ul>
+  <input type="text" id="recipient" placeholder="Recipient ID" disabled>
+  <input type="text" id="message">
+  <button id="send-btn">Send</button>
+
+  <script src="/socket.io/socket.io.js"></script>  <script>
+   const socket = io();
+
+    const usersList = document.getElementById('users-list');
+    const sendBtn = document.getElementById('send-btn');
+    const recipientInput = document.getElementById('recipient');
+    const messageInput = document.getElementById('message');
+
+    socket.on('updateUsers', (users) => {
+      usersList.innerHTML = '';
+      users.forEach(user => {
+        const li = document.createElement('li');
+        li.textContent = user;
+        li.onclick = () => {
+          recipientInput.value = user;
+          recipientInput.disabled = true;
+        };
+        usersList.appendChild(li);
+      });
+    });
+
+    socket.on('message', (message) => {
+      alert('New message: ' + message);
+    });
+
+    function sendMessage() {
+      const recipient = recipientInput.value;
+      const message = messageInput.value;
+
+      if (!recipient || !message) {
+        alert('Please provide both recipient and message!');
+        return;
+      }
+
+      socket.emit('sendMessage', { recipient, message });
+      messageInput.value = '';
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+
+    messageInput.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
+
+
